@@ -1,0 +1,23 @@
+{
+  "physics": {
+    "collisionGroups": [],
+    "collisionMatrix": {
+      "0": 1,
+      "1": 0
+    },
+    "defaultMaterial": {
+      "restitution": 0,
+      "friction": 1,
+      "rollingFriction": 1,
+      "spinningFriction": 1
+    }
+  },
+  "general": {
+    "designResolution": {
+      "width": 828,
+      "height": 1472,
+      "fitHeight": true,
+      "fitWidth": false
+    }
+  }
+}

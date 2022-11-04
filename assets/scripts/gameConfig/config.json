@@ -1,0 +1,34 @@
+{
+    "levels": [
+        {
+            "cube": "SixCube",
+            "cubelength": 60,
+            "spin": 10,
+            "cut": 3,
+            "jumpAngle": 40
+        },
+        {
+            "cube": "SixCube",
+            "cubelength": 50,
+            "spin": 10
+        },
+        {
+            "cube": "SixCube",
+            "cubelength": 50,
+            "spin": 10
+        },
+        {
+            "cube": "SixCube",
+            "cubelength": 50,
+            "spin": 10
+        },
+        {
+            "cube": "SixCube",
+            "cubelength": 50,
+            "spin": 10
+        }
+    ],
+    "six_cube": {
+        "dist": 0.8
+    }
+}

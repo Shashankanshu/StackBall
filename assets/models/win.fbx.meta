@@ -1,0 +1,80 @@
+{
+  "ver": "2.3.0",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "0a25483f-a03f-4076-9d00-b7bc60ac855a",
+  "files": [],
+  "subMetas": {
+    "c244a": {
+      "importer": "gltf-mesh",
+      "uuid": "0a25483f-a03f-4076-9d00-b7bc60ac855a@c244a",
+      "displayName": "",
+      "id": "c244a",
+      "name": "Cylinder.mesh",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.1.0",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0b568": {
+      "importer": "gltf-mesh",
+      "uuid": "0a25483f-a03f-4076-9d00-b7bc60ac855a@0b568",
+      "displayName": "",
+      "id": "0b568",
+      "name": "Cylinder.001.mesh",
+      "userData": {
+        "gltfIndex": 1
+      },
+      "ver": "1.1.0",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "e50a6": {
+      "importer": "gltf-scene",
+      "uuid": "0a25483f-a03f-4076-9d00-b7bc60ac855a@e50a6",
+      "displayName": "",
+      "id": "e50a6",
+      "name": "win.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "legacyFbxImporter": false,
+    "allowMeshDataAccess": true,
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "redirect": "0a25483f-a03f-4076-9d00-b7bc60ac855a@e50a6",
+    "assetFinder": {
+      "meshes": [
+        "0a25483f-a03f-4076-9d00-b7bc60ac855a@c244a",
+        "0a25483f-a03f-4076-9d00-b7bc60ac855a@0b568"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "0a25483f-a03f-4076-9d00-b7bc60ac855a@e50a6"
+      ]
+    }
+  }
+}

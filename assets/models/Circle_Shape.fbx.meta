@@ -1,0 +1,134 @@
+{
+  "ver": "2.3.0",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842",
+  "files": [],
+  "subMetas": {
+    "349d8": {
+      "importer": "gltf-mesh",
+      "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842@349d8",
+      "displayName": "",
+      "id": "349d8",
+      "name": "polySurface27.mesh",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.1.0",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "9f9f4": {
+      "importer": "gltf-mesh",
+      "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842@9f9f4",
+      "displayName": "",
+      "id": "9f9f4",
+      "name": "polySurface29.mesh",
+      "userData": {
+        "gltfIndex": 1
+      },
+      "ver": "1.1.0",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "18f17": {
+      "importer": "gltf-mesh",
+      "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842@18f17",
+      "displayName": "",
+      "id": "18f17",
+      "name": "polySurface30.mesh",
+      "userData": {
+        "gltfIndex": 2
+      },
+      "ver": "1.1.0",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "33ebb": {
+      "importer": "gltf-mesh",
+      "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842@33ebb",
+      "displayName": "",
+      "id": "33ebb",
+      "name": "polySurface26.mesh",
+      "userData": {
+        "gltfIndex": 3
+      },
+      "ver": "1.1.0",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8d883": {
+      "importer": "gltf-material",
+      "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842@8d883",
+      "displayName": "",
+      "id": "8d883",
+      "name": "lambert1.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "11e23": {
+      "importer": "gltf-scene",
+      "uuid": "09b44b8d-baef-43ce-a315-63bdb7c44842@11e23",
+      "displayName": "",
+      "id": "11e23",
+      "name": "Circle_Shape.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "legacyFbxImporter": false,
+    "allowMeshDataAccess": true,
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "redirect": "09b44b8d-baef-43ce-a315-63bdb7c44842@11e23",
+    "assetFinder": {
+      "meshes": [
+        "09b44b8d-baef-43ce-a315-63bdb7c44842@349d8",
+        "09b44b8d-baef-43ce-a315-63bdb7c44842@9f9f4",
+        "09b44b8d-baef-43ce-a315-63bdb7c44842@18f17",
+        "09b44b8d-baef-43ce-a315-63bdb7c44842@33ebb"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [
+        "09b44b8d-baef-43ce-a315-63bdb7c44842@8d883"
+      ],
+      "scenes": [
+        "09b44b8d-baef-43ce-a315-63bdb7c44842@11e23"
+      ]
+    }
+  }
+}
