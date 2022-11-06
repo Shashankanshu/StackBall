@@ -8,7 +8,7 @@
     },
     "_native": "",
     "sample": 10,
-    "speed": 0.1,
+    "speed": 0.2,
     "wrapMode": 2,
     "enableTrsBlending": false,
     "_duration": 3,
@@ -74,10 +74,7 @@
         "rightTangentWeight": 1,
         "leftTangent": 0,
         "leftTangentWeight": 1,
-        "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "easingMethod": 0
       },
       {
         "__type__": "cc.RealKeyframeValue",
@@ -116,10 +113,7 @@
         "rightTangentWeight": 1,
         "leftTangent": 0,
         "leftTangentWeight": 1,
-        "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "easingMethod": 0
       },
       {
         "__type__": "cc.RealKeyframeValue",
@@ -158,10 +152,7 @@
         "rightTangentWeight": 1,
         "leftTangent": 0,
         "leftTangentWeight": 1,
-        "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "easingMethod": 0
       },
       {
         "__type__": "cc.RealKeyframeValue",

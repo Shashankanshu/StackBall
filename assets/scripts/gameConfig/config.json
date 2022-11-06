@@ -3,32 +3,47 @@
         {
             "cube": "SixCube",
             "cubelength": 60,
-            "spin": 10,
+            "spin": 5,
             "cut": 3,
             "jumpAngle": 40
         },
         {
             "cube": "SixCube",
-            "cubelength": 50,
-            "spin": 10
+            "cubelength": 80,
+            "spin": 6,
+            "cut": 2,
+            "jumpAngle": 50
         },
         {
             "cube": "SixCube",
-            "cubelength": 50,
-            "spin": 10
+            "cubelength": 80,
+            "spin": 7,
+            "cut": 2,
+            "jumpAngle": 60
         },
         {
             "cube": "SixCube",
-            "cubelength": 50,
-            "spin": 10
+            "cubelength": 90,
+            "spin": 8,
+            "cut": 3,
+            "jumpAngle": 70
         },
         {
             "cube": "SixCube",
-            "cubelength": 50,
-            "spin": 10
+            "cubelength": 120,
+            "spin": 9,
+            "cut": 5,
+            "jumpAngle": 80
+        },
+        {
+            "cube": "SixCube",
+            "cubelength": 120,
+            "spin": 10,
+            "cut": 3,
+            "jumpAngle": 90
         }
     ],
     "six_cube": {
-        "dist": 0.5
+        "dist": 0.4
     }
 }

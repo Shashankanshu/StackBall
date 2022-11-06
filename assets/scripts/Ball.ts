@@ -37,7 +37,7 @@ export class Ball extends Component {
 
             if (!this.mainScene.game_over) {
 
-                if (this.collision && !this.mainScene.hit_pressed) { // ball is on surface
+                if (this.collision && (!this.mainScene.hit_pressed || this.mainScene.levelOver)) { // ball is on surface
                     this.vy = -this.vy;
                     this.collision = false;
                 }
@@ -55,9 +55,10 @@ export class Ball extends Component {
         this.collision = true;
         this.mainScene.onBallCollision(event);
     }
+
     onCollisionStay(event: ICollisionEvent) {
         console.log('onCollisionStay');
-        
+
         this.collision = true;
         // this.mainScene.onBallCollision(event);
     }
