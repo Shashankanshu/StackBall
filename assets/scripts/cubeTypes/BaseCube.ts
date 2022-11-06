@@ -10,6 +10,10 @@ export class BaseCube extends Component {
     setBaseReference(main: MainScene) {
         this._mainScene = main;
     }
+    
+    break() {
+
+    }
 
 }
 

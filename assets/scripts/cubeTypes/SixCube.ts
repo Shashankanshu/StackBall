@@ -19,19 +19,12 @@ export class SixCube extends BaseCube {
         new Vec2(0, 0.026),
         new Vec2(0.023, 0.014)
     ];
+    
     start() {
-
         this.isBroken = false;
-
-        for (let index = 0; index < this.surfaceArr.length; index++) {
-            const element = this.surfaceArr[index];
-            let collider = element.getComponent(MeshCollider);
-            collider.on('onCollisionEnter', this.onCollision, this);
-        }
-
     }
 
-    break(event: ICollisionEvent) {
+    break() {
         this.isBroken = true;
 
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.BREAK_CUBE));

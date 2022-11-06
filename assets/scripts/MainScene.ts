@@ -1,4 +1,5 @@
-import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instantiate, Vec2, Vec3, Animation, Sprite, UITransform, tween, macro } from 'cc';
+import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instantiate, Vec2, Vec3, Animation, Sprite, UITransform, tween, macro, ICollisionEvent, Tween, TweenAction, TiledUserNodeData, Color } from 'cc';
+import { Ball } from './Ball';
 import { BaseCube } from './cubeTypes/BaseCube';
 const { ccclass, property } = _decorator;
 
@@ -36,6 +37,9 @@ export class MainScene extends Component {
     @property(Node)
     filler: Node = null;
 
+    @property(Node)
+    ball: Node;
+
     savedConfig: {
         level: number,
         score: number
@@ -46,15 +50,38 @@ export class MainScene extends Component {
         left: false
     }
 
+    fillerDimention: UITransform;
+
     max_level = 0;
     current_level = 0;
     hit_pressed = false;
 
-    meter_progress = 100;
-    boost_progress = 0;
+    game_started = false;
+    game_over = false;
 
+    level_data = null;
+
+    fillTween: Tween<Node>;
+    emptyTween: Tween<Node>;
+
+    colorRed: Color;
+    colorGreen: Color;
+
+    boostActive = false;
+
+    onLoad() {
+        this.fillerDimention = this.filler.getComponent(UITransform);
+        this.colorRed = new Color().fromHEX('#ff0000');
+        this.colorGreen = new Color().fromHEX('#00ff00');
+    }
+
+    resetComponents() {
+        this.filler.getComponent(Sprite).color = this.colorGreen;
+        this.filler.setPosition(new Vec3(0, -this.fillerDimention.height, 0));
+    }
 
     start() {
+        this.resetComponents();
 
         PhysicsSystem.instance.enable = true;
         this.initConfigData();
@@ -62,14 +89,15 @@ export class MainScene extends Component {
         let data = this.gameConfig.json;
         this.max_level = data['levels'].length;
 
-
         let lData = data['levels'][this.savedConfig.level];
+        this.level_data = lData;
+
         this.createLevel(lData, data);
 
         this.initEventListeners();
         this.spinAxel();
 
-        this.filler.position.set(0, 0, 0);
+        (this.ball.getComponent('Ball') as Ball).mainScene = this;
 
         /* 
         tween(this.filler)
@@ -80,15 +108,13 @@ export class MainScene extends Component {
                 }))
             .start(); */
 
-        this.startTimer();
+        // this.startTimer();
+
+        this.game_started = true;
     }
 
     startTimer() {
         this.schedule(() => {
-
-            this.updateMeterValue();
-            this.updateBootValue();
-
         }, 0.1, macro.REPEAT_FOREVER, 0);
     }
 
@@ -97,7 +123,6 @@ export class MainScene extends Component {
         rotateAnim.play('stackRotation');
     }
 
-
     createLevel(levelData, data) {
 
         let cube = levelData.cube;
@@ -105,7 +130,6 @@ export class MainScene extends Component {
         let counter = 0;
 
         this.cubeStack.removeAllChildren();
-
 
         if (cube == 'SixCube') {
 
@@ -176,55 +200,54 @@ export class MainScene extends Component {
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.LEVEL_COMP));
     }
 
+    onBallCollision(event: ICollisionEvent) {
+        if (event.otherCollider.node.name !== 'platform') {
+
+            let cube = event.otherCollider.node.parent.parent.getComponent('BaseCube') as BaseCube;
+            cube.break();
+        }
+    }
+
     onHitPressed() {
-        this.hit_pressed = true;
-        console.log('hit-pressed');
+        this.emptyTween && this.emptyTween.stop();
+        this.fillTween = tween(this.filler)
+            .to(2, { position: new Vec3(0, 0, 0) }, {
+                onComplete: () => {
+                    this.setBoostActive();
+                }
+            })
+            .start();
     }
 
     onHitRealeased() {
-        this.hit_pressed = false;
-        console.log('hit-release');
+        this.fillTween && this.fillTween.stop();
+        this.emptyTween = tween(this.filler)
+            .to(1, { position: new Vec3(0, -this.fillerDimention.height, 0) })
+            .start();
+    }
+
+    setBoostActive() {
+        this.boostActive = true;
+        this.filler.getComponent(Sprite).color = this.colorRed;
+        this.emptyTween = tween(this.filler)
+            .to(1, { position: new Vec3(0, -this.fillerDimention.height, 0) }, {
+                onComplete: () => {
+                    this.setBoostInActive();
+                }
+            })
+            .start();
+    }
+
+    setBoostInActive() {
+        this.boostActive = false;
+        this.filler.getComponent(Sprite).color = this.colorGreen;
     }
 
     onCubeBreak() {
 
-        this.meter_progress += cubeBreakMultiplier;
-        if (this.meter_progress > 100) {
-            this.meter_progress = 100;
-        }
-
-        let fillerDimention = this.filler.getComponent(UITransform);
-        let yPos = fillerDimention.height * (this.meter_progress / 100);
-
-
-        tween(this.filler)
-            .to(0.1, { position: new Vec3(0, -(fillerDimention.height - yPos), 0) })
-            .start();
-
     }
 
     onHardCubeBreak() {
-
-    }
-
-    updateBootValue() {
-
-        this.boost_progress -= 1;
-        if (this.boost_progress < 0)
-            this.boost_progress = 0;
-
-    }
-
-    updateMeterValue() {
-
-        this.meter_progress -= 1;
-        if (this.meter_progress < 0)
-            this.meter_progress = 100;
-
-
-        let fillerDimention = this.filler.getComponent(UITransform);
-        let yPos = fillerDimention.height * (this.meter_progress / 100);
-        this.filler.position.set(0, -(fillerDimention.height - yPos), 0);
 
     }
 
@@ -242,7 +265,5 @@ export class MainScene extends Component {
     }
 
     update(deltaTime: number) {
-
     }
 }
-
