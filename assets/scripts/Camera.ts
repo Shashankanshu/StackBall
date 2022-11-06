@@ -1,8 +1,8 @@
 import { _decorator, Component, Node, Vec3, game, director, clamp } from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('Camera')
-export class Camera extends Component {
+@ccclass('GameCamera')
+export class GameCamera extends Component {
 
     @property({ type: Node })
     ball: Node;
@@ -13,7 +13,7 @@ export class Camera extends Component {
     offSet = 2;
     ballLastPosY = 0;
 
-    start() {
+    initCamera() {
         this.node.position.set(0, this.ball.position.y, 0);
     }
 

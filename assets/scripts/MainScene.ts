@@ -1,12 +1,11 @@
-import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instantiate, Vec2, Vec3, Animation, Sprite, UITransform, tween, macro, ICollisionEvent, Tween, TweenAction, TiledUserNodeData, Color } from 'cc';
+import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instantiate, Vec2, Vec3, Animation, Sprite, UITransform, tween, macro, ICollisionEvent, Tween, Color, game, debug, profiler } from 'cc';
 import { Ball } from './Ball';
+import { GameCamera } from './Camera';
 import { BaseCube } from './cubeTypes/BaseCube';
 const { ccclass, property } = _decorator;
 
 export const storageName = 'rajgamesdata';
 export const eventTarget = new EventTarget();
-
-const cubeBreakMultiplier = 20;
 
 export const enum CUSTOM_EVENT {
     HIT_PRESS = 'onhitpress',
@@ -40,6 +39,9 @@ export class MainScene extends Component {
     @property(Node)
     ball: Node;
 
+    @property(Node)
+    camera: GameCamera;
+
     savedConfig: {
         level: number,
         score: number
@@ -70,6 +72,10 @@ export class MainScene extends Component {
     boostActive = false;
 
     onLoad() {
+
+        game.frameRate = 60;
+        profiler.hideStats();
+
         this.fillerDimention = this.filler.getComponent(UITransform);
         this.colorRed = new Color().fromHEX('#ff0000');
         this.colorGreen = new Color().fromHEX('#00ff00');
@@ -99,23 +105,36 @@ export class MainScene extends Component {
 
         (this.ball.getComponent('Ball') as Ball).mainScene = this;
 
-        /* 
-        tween(this.filler)
-            .repeatForever(tween()
-                .to(2, { position: new Vec3(0, 0, 0) })
-                .call(() => {
-                    this.filler.position.set(0, -451, 0);
-                }))
-            .start(); */
+        let bPos = this.cubeStack.children[this.cubeStack.children.length - 1].position.y + 5;
+        this.ball.setPosition(new Vec3(this.ball.position.x, bPos, this.ball.position.z));
 
-        // this.startTimer();
+        (this.ball.getComponent('Ball') as Ball).initBall();
+
+        let camera = this.camera.getComponent('GameCamera') as GameCamera;
+        camera.initCamera();
 
         this.game_started = true;
     }
 
-    startTimer() {
-        this.schedule(() => {
-        }, 0.1, macro.REPEAT_FOREVER, 0);
+    initConfigData() {
+
+        this.savedConfig = {
+            level: 0,
+            score: 0
+        };
+
+        let gameData = JSON.parse(localStorage.getItem(storageName));
+        if (gameData == null || gameData == undefined) {
+            gameData = {
+                level: 0,
+                score: 0
+            };
+            localStorage.setItem(storageName, JSON.stringify(gameData));
+        }
+
+        this.savedConfig.level = gameData.level;
+        this.savedConfig.score = gameData.score;
+        this.current_level = gameData.level;
     }
 
     spinAxel() {
@@ -163,27 +182,6 @@ export class MainScene extends Component {
 
     }
 
-    initConfigData() {
-
-        this.savedConfig = {
-            level: 0,
-            score: 0
-        };
-
-        let gameData = JSON.parse(localStorage.getItem(storageName));
-        if (gameData == null || gameData == undefined) {
-            gameData = {
-                level: 0,
-                score: 0
-            };
-            localStorage.setItem(storageName, JSON.stringify(gameData));
-        }
-
-        this.savedConfig.level = gameData.level;
-        this.savedConfig.score = gameData.score;
-        this.current_level = gameData.level;
-    }
-
     initEventListeners() {
         eventTarget.addEventListener(CUSTOM_EVENT.HIT_PRESS, () => {
             this.onHitPressed();
@@ -194,21 +192,29 @@ export class MainScene extends Component {
         eventTarget.addEventListener(CUSTOM_EVENT.BREAK_CUBE, () => {
             this.onCubeBreak();
         });
+        eventTarget.addEventListener(CUSTOM_EVENT.LEVEL_COMP, () => {
+            // TODO
+        });
     }
 
     onLevelComplete() {
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.LEVEL_COMP));
+        this.game_over = true;
+        this.game_started = false;
     }
 
     onBallCollision(event: ICollisionEvent) {
-        if (event.otherCollider.node.name !== 'platform') {
+        if (event.otherCollider.node.name !== 'Platform') {
 
-            let cube = event.otherCollider.node.parent.parent.getComponent('BaseCube') as BaseCube;
-            cube.break();
+            if (this.hit_pressed) {
+                let cube = event.otherCollider.node.parent.parent.getComponent('BaseCube') as BaseCube;
+                cube.break();
+            }
         }
     }
 
     onHitPressed() {
+        this.hit_pressed = true;
         this.emptyTween && this.emptyTween.stop();
         this.fillTween = tween(this.filler)
             .to(2, { position: new Vec3(0, 0, 0) }, {
@@ -220,10 +226,13 @@ export class MainScene extends Component {
     }
 
     onHitRealeased() {
-        this.fillTween && this.fillTween.stop();
-        this.emptyTween = tween(this.filler)
-            .to(1, { position: new Vec3(0, -this.fillerDimention.height, 0) })
-            .start();
+        this.hit_pressed = false;
+        if (!this.boostActive) {
+            this.fillTween && this.fillTween.stop();
+            this.emptyTween = tween(this.filler)
+                .to(1, { position: new Vec3(0, -this.fillerDimention.height, 0) })
+                .start();
+        }
     }
 
     setBoostActive() {
@@ -232,6 +241,10 @@ export class MainScene extends Component {
         this.emptyTween = tween(this.filler)
             .to(1, { position: new Vec3(0, -this.fillerDimention.height, 0) }, {
                 onComplete: () => {
+
+                    if (this.hit_pressed)
+                        this.onHitPressed();
+
                     this.setBoostInActive();
                 }
             })

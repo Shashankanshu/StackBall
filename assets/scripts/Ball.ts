@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Collider, ICollisionEvent, RigidBody, math, MeshCollider, SphereCollider } from 'cc';
+import { _decorator, Component, ICollisionEvent, macro, SphereCollider } from 'cc';
 import { MainScene } from './MainScene';
 const { ccclass, property } = _decorator;
 
@@ -9,6 +9,7 @@ export class Ball extends Component {
     cy = 0;   //currrent y position
     vy = 0;   //velocity
     mvy = 5;  //max velocity
+    // delta = 0.01;
     gravity = 0.2;
     collision = false;
 
@@ -22,14 +23,12 @@ export class Ball extends Component {
         return this._mainScene;
     }
 
-    onLoad() {
-
+    initBall() {
         this.cy = this.node.position.y;
-    }
-
-    start() {
+        // this.schedule(this.fixedUpdate, 1 / 120, macro.REPEAT_FOREVER, 0);
         let collider = this.node.getComponent(SphereCollider);
         collider.on('onTriggerEnter', this.onCollision, this);
+        // collider.on('onTriggerStay', this.onCollisionStay, this);
     }
 
     update(dt: number) {
@@ -38,11 +37,12 @@ export class Ball extends Component {
 
             if (!this.mainScene.game_over) {
 
-                if (this.collision) { // ball is on surface
+                if (this.collision && !this.mainScene.hit_pressed) { // ball is on surface
                     this.vy = -this.vy;
                     this.collision = false;
                 }
                 this.cy -= this.vy * dt;
+                // this.cy -= this.vy * this.delta;
                 this.node.setPosition(this.node.position.x, this.cy, this.node.position.z);
 
                 if (this.vy <= this.mvy)
@@ -54,6 +54,12 @@ export class Ball extends Component {
     onCollision(event: ICollisionEvent) {
         this.collision = true;
         this.mainScene.onBallCollision(event);
+    }
+    onCollisionStay(event: ICollisionEvent) {
+        console.log('onCollisionStay');
+        
+        this.collision = true;
+        // this.mainScene.onBallCollision(event);
     }
 }
 
