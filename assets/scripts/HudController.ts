@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, tween, Vec3, easing, AudioSource, AudioClip } from 'cc';
+import { _decorator, Component, Node, Label, tween, Vec3, easing, AudioSource, AudioClip, Sprite, Color, UIOpacity } from 'cc';
 import { AudioEngine } from './AudioEngine';
 import { CUSTOM_EVENT, eventTarget, storageName } from './MainScene';
 const { ccclass, property } = _decorator;
@@ -20,6 +20,7 @@ export const enum AUDIO_TYPE {
 export class HudController extends Component {
 
     current_score = 0;
+    current_level = 1;
     high_score = 0;
 
     @property(Node)
@@ -27,6 +28,9 @@ export class HudController extends Component {
 
     @property(Label)
     scoreLabel: Label = null;
+
+    @property(Label)
+    levelInfo: Label = null;
 
     @property(Node)
     menu: Node = null;
@@ -49,6 +53,12 @@ export class HudController extends Component {
     @property(Node)
     creds: Node = null;
 
+    @property(Node)
+    settings: Node = null;
+
+    @property(Node)
+    overlay: Node = null;
+
     isSoundOn = true;
 
     @property([AudioClip])
@@ -56,6 +66,10 @@ export class HudController extends Component {
 
     delayBetMenu = 0.5;
     musicVolume = 0.2;
+    playClicked = false;
+    isGamePaused = false;
+
+    transparency = 121;
 
     onLoad() {
 
@@ -74,8 +88,11 @@ export class HudController extends Component {
 
         this.soundOnSprite.active = true;
         this.soundOffSprite.active = false;
+        this.isGamePaused = false;
 
         this.hideHud();
+        this.hideCreds();
+        this.showOverlay();
 
         this.logo.active = true;
         this.scoreLabel.string = ' Score : ' + this.current_score + ' ';
@@ -85,16 +102,31 @@ export class HudController extends Component {
         AudioEngine.instance.setMusicVolume(this.musicVolume);
     }
 
+    private resetScore() {
+
+        let data = JSON.parse(localStorage.getItem(storageName));
+
+        this.current_score = data.score;
+        this.scoreLabel.string = ' Score : ' + this.current_score + ' ';
+
+        this.current_level = data.level;
+        this.levelInfo.string = ' level : ' + (this.current_level + 1) + ' ';
+    }
+
     showHud() {
         this.scoreLabel.node.active = true;
         this.meter.active = true;
         this.logo.active = true;
+        this.settings.active = true;
+        this.levelInfo.node.active = true;
     }
 
     hideHud() {
         this.scoreLabel.node.active = false;
         this.meter.active = false;
         this.logo.active = false;
+        this.settings.active = false;
+        this.levelInfo.node.active = false;
     }
 
     start() {
@@ -119,6 +151,27 @@ export class HudController extends Component {
         eventTarget.addEventListener(CUSTOM_EVENT.PLAYER_DEAD, () => {
             AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.PLAYER_DEAD]);
         });
+        eventTarget.addEventListener(CUSTOM_EVENT.NEW_GAME, () => {
+            this.resetScore();
+        });
+    }
+
+    showOverlay() {
+        let element = this.overlay.getComponent(UIOpacity);
+        tween(element)
+            .to(0.1, { opacity: this.transparency }, {
+                easing: easing.sineOut
+            })
+            .start();
+    }
+
+    hideOverlay() {
+        let element = this.overlay.getComponent(UIOpacity);
+        tween(element)
+            .to(0.1, { opacity: 0 }, {
+                easing: easing.sineOut
+            })
+            .start();
     }
 
     showMenuButtons() {
@@ -180,7 +233,7 @@ export class HudController extends Component {
             let element = this.options.children[index];
             tween(element)
                 .to(0.5, { position: new Vec3(0, -(index + 10) * dist, 0) }, {
-                    easing: easing.sineIn
+                    easing: easing.sineIn,
                 })
                 .start();
             --index;
@@ -235,9 +288,11 @@ export class HudController extends Component {
 
     onPlayClick() {
         AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.CLICK]);
-
+        this.playClicked = true;
         this.hideMenuButtons();
         this.hideLogo();
+        this.hideOverlay();
+        eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.NEW_GAME));
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.PLAY_GAME));
     }
 
@@ -251,9 +306,20 @@ export class HudController extends Component {
 
     onExitOptionsClick() {
         AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.CLICK]);
-
         this.hideOptions();
-        this.scheduleOnce(this.showMenuButtons, this.delayBetMenu);
+
+        if (this.playClicked) {
+            
+            this.hideOverlay();
+            this.scheduleOnce(() => {
+                this.isGamePaused = false;
+                eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_RESUME));
+            }, 0.5);
+
+        } else {
+
+            this.scheduleOnce(this.showMenuButtons, this.delayBetMenu);
+        }
     }
 
     onCreditsClick() {
@@ -292,6 +358,16 @@ export class HudController extends Component {
         // this.hideLogo();
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.QUIT_GAME));
         AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.CLICK]);
+    }
+
+    onSettingsClick() {
+        if (!this.isGamePaused) {
+            this.isGamePaused = true;
+            this.showOptions();
+            this.showOverlay();
+            eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_PAUSED));
+            AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.CLICK]);
+        }
     }
 }
 

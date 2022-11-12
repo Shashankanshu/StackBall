@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instantiate, Vec2, Vec3, Animation, Sprite, UITransform, tween, macro, ICollisionEvent, Tween, Color, game, profiler, director } from 'cc';
+import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instantiate, Vec2, Vec3, Animation, Sprite, UITransform, tween, macro, ICollisionEvent, Tween, Color, game, profiler, director, easing } from 'cc';
 import { Ball } from './Ball';
 import { GameCamera } from './Camera';
 import { BaseCube } from './cubeTypes/BaseCube';
@@ -10,13 +10,17 @@ export const eventTarget = new EventTarget();
 export const enum CUSTOM_EVENT {
     HIT_PRESS = 'onhitpress',
     HIT_RELEASE = 'onhitrelease',
+    GAME_PAUSED = 'gamePaused',
+    GAME_RESUME = 'gameResume',
     BREAK_CUBE = 'breakcube',
     LEVEL_COMP = 'levelcomplete',
+    SET_LEVEL = 'setlevel',
     PLAY_GAME = 'PLAY_GAME',
     QUIT_GAME = 'QUIT_GAME',
     BALL_COLLIDE = 'BALL_COLLIDE',
     HARD_CUBE = 'HARD_CUBE',
-    PLAYER_DEAD = 'PLAYER_DEAD'
+    PLAYER_DEAD = 'PLAYER_DEAD',
+    NEW_GAME = 'NEW_GAME'
 }
 
 export const enum CUBE_TYPES {
@@ -76,6 +80,7 @@ export class MainScene extends Component {
     colorGreen: Color;
 
     boostActive = false;
+    ballLastPosition = 0;
 
     onLoad() {
 
@@ -83,6 +88,9 @@ export class MainScene extends Component {
         profiler.hideStats();
 
         (this.ball.getComponent('Ball') as Ball).mainScene = this;
+
+        let camera = this.camera.getComponent('GameCamera') as GameCamera;
+        camera.gameOver = false;
 
         this.fillerDimention = this.filler.getComponent(UITransform);
         this.colorRed = new Color().fromHEX('#ff0000');
@@ -110,6 +118,7 @@ export class MainScene extends Component {
         this.spinAxel();
 
         let bPos = this.cubeStack.children[this.cubeStack.children.length - 1].position.y + 5;
+        this.ballLastPosition = bPos;
         this.ball.setPosition(new Vec3(this.ball.position.x, bPos, this.ball.position.z));
 
         (this.ball.getComponent('Ball') as Ball).initBall();
@@ -129,20 +138,29 @@ export class MainScene extends Component {
 
     startNewGame() {
 
-        this.game_over = false;
-        this.game_started = true;
-
         this.resetComponents();
         this.createLevel();
         this.spinAxel();
 
-        let bPos = this.cubeStack.children[this.cubeStack.children.length - 1].position.y + 5;
-        this.ball.setPosition(new Vec3(this.ball.position.x, bPos, this.ball.position.z));
+        this.resetBallAndCamera(() => {
 
-        (this.ball.getComponent('Ball') as Ball).initBall();
+            (this.ball.getComponent('Ball') as Ball).initBall();
 
-        let camera = this.camera.getComponent('GameCamera') as GameCamera;
-        camera.initCamera();
+            let camera = this.camera.getComponent('GameCamera') as GameCamera;
+            camera.initCamera();
+            camera.gameOver = false;
+
+            eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.NEW_GAME));
+
+            this.game_over = false;
+            this.game_started = true;
+
+        });
+    }
+
+    pauseGame(isPaused: boolean) {
+        this.game_started = !isPaused;
+        this.onHitRealeased();
     }
 
     initConfigData() {
@@ -171,6 +189,11 @@ export class MainScene extends Component {
         let rotateAnim = this.cubeStack.getComponent(Animation);
         rotateAnim.stop();
         rotateAnim.play('stackRotation');
+    }
+
+    stopSpinAxel() {
+        let rotateAnim = this.cubeStack.getComponent(Animation);
+        rotateAnim.stop();
     }
 
     createLevel() {
@@ -229,6 +252,12 @@ export class MainScene extends Component {
         eventTarget.addEventListener(CUSTOM_EVENT.HIT_PRESS, () => {
             this.onHitPressed();
         });
+        eventTarget.addEventListener(CUSTOM_EVENT.GAME_PAUSED, () => {
+            this.pauseGame(true);
+        });
+        eventTarget.addEventListener(CUSTOM_EVENT.GAME_RESUME, () => {
+            this.pauseGame(false);
+        });
         eventTarget.addEventListener(CUSTOM_EVENT.HIT_RELEASE, () => {
             this.onHitRealeased();
         });
@@ -243,7 +272,6 @@ export class MainScene extends Component {
 
     onLevelComplete() {
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.LEVEL_COMP));
-
         this.levelOver = true;
         this.onHitRealeased();
     }
@@ -343,6 +371,25 @@ export class MainScene extends Component {
         this.onHitRealeased();
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.PLAYER_DEAD));
         this.scheduleOnce(this.startNewGame, 2);
+    }
+
+    resetBallAndCamera(callback: Function) {
+
+        let camera = this.camera.getComponent('GameCamera') as GameCamera;
+        camera.gameOver = true;
+
+        let bPos = this.cubeStack.children[this.cubeStack.children.length - 1].position.y + 5;
+        this.ball.setPosition(new Vec3(this.ball.position.x, bPos, this.ball.position.z));
+
+        this.scheduleOnce(callback, 1);
+
+        // tween(this.ball)
+        //     .to(2, { position: new Vec3(this.ball.position.x, bPos, this.ball.position.z) }, {
+        //         onComplete: () => {
+        //             callback();
+        //         }
+        //     })
+        //     .start();
     }
 
     updateGameData() {

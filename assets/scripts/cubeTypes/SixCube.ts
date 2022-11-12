@@ -50,21 +50,10 @@ export class SixCube extends BaseCube {
 
     onCollision(event: ICollisionEvent) {
 
-        // let surfaceName = event.selfCollider.node.name;
-        // if (surfaceName[surfaceName.length - 1] === "1") {
-
-        // } else {
-
-        // }
-
         if (this._mainScene.hit_pressed) {
             this.node.active = false;
             eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.BREAK_CUBE));
         }
-
-
-        // this.break(event);
-
     }
 
     update(deltaTime: number) {

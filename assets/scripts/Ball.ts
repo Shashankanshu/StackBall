@@ -23,15 +23,25 @@ export class Ball extends Component {
         return this._mainScene;
     }
 
+    resetGravity(){
+        this.lastCollider = '';
+        this.cy = 0;
+        this.vy = 0;
+    }
+
     initBall() {
+
+        this.resetGravity();
+
         this.cy = this.node.position.y;
-        // this.schedule(this.fixedUpdate, 1 / 120, macro.REPEAT_FOREVER, 0);
+        this.schedule(this.fixedUpdate, 1 / 120, macro.REPEAT_FOREVER, 0);
+        
         let collider = this.node.getComponent(SphereCollider);
         collider.on('onTriggerEnter', this.onCollision, this);
         // collider.on('onTriggerStay', this.onCollisionStay, this);
     }
 
-    update(dt: number) {
+    fixedUpdate(dt: number) {
 
         if (this.mainScene.game_started) {
 
