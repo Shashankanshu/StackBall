@@ -9,9 +9,7 @@
   },
   "_techIdx": 0,
   "_defines": [
-    {
-      "USE_ALBEDO_MAP": true
-    },
+    {},
     {},
     {}
   ],
@@ -48,9 +46,9 @@
     {
       "mainColor": {
         "__type__": "cc.Color",
-        "r": 132,
-        "g": 222,
-        "b": 250,
+        "r": 26,
+        "g": 194,
+        "b": 247,
         "a": 255
       },
       "mainTexture": {

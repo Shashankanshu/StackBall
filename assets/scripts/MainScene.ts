@@ -27,7 +27,8 @@ export const enum CUBE_TYPES {
     SIX_CUBE,
     FLOWER,
     SPIKE,
-    SQUARE
+    SQUARE,
+    CIRCLE
 };
 
 @ccclass('MainScene')
@@ -82,6 +83,9 @@ export class MainScene extends Component {
     boostActive = false;
     ballLastPosition = 0;
 
+    cubeHeight = 0.7;
+    cubeDist = 0.4;
+
     onLoad() {
 
         game.frameRate = 60;
@@ -117,7 +121,7 @@ export class MainScene extends Component {
         this.initEventListeners();
         this.spinAxel();
 
-        let bPos = this.cubeStack.children[this.cubeStack.children.length - 1].position.y + 5;
+        let bPos = this.cubeStack.children.length * this.cubeDist + 5;
         this.ballLastPosition = bPos;
         this.ball.setPosition(new Vec3(this.ball.position.x, bPos, this.ball.position.z));
 
@@ -199,47 +203,62 @@ export class MainScene extends Component {
     createLevel() {
 
         let data: any = this.gameConfig.json;
+        this.cubeDist = data.six_cube.dist;
+
         this.max_level = data['levels'].length;
 
         let lData = data['levels'][this.savedConfig.level];
         this.level_data = lData;
 
-        let cube = this.level_data.cube;
+        let cubeStr = this.level_data.cube;
         let angle = 0;
         let counter = 0;
 
         this.cubeStack.removeAllChildren();
 
-        if (cube == 'SixCube') {
+        let cutLen = this.level_data.cubelength / this.level_data.cut;
 
-            let cutLen = this.level_data.cubelength / this.level_data.cut;
+        for (let j = 0; j < this.level_data.cut; j++) {
 
-            for (let j = 0; j < this.level_data.cut; j++) {
+            angle += this.level_data.jumpAngle * j;
 
-                angle += this.level_data.jumpAngle * j;
+            for (let index = 0; index < cutLen; index++) {
 
-                for (let index = 0; index < cutLen; index++) {
+                ++counter;
 
-                    ++counter;
+                angle += this.level_data.spin;
 
-                    angle += this.level_data.spin;
+                let yPos = this.cubeDist * counter;
+                yPos = Number(yPos.toPrecision(3));
 
-                    let yPos = data.six_cube.dist * counter;
-                    yPos = Number(yPos.toPrecision(3));
+                let newCube = instantiate(this.cubesPrefab[this.getCubeEnum(cubeStr)]);
+                newCube.setPosition(new Vec3(0, yPos, 0));
+                newCube.setRotationFromEuler(new Vec3(0, angle, 0));
+                (newCube.getComponent('BaseCube') as BaseCube).setBaseReference(this);
 
-                    // console.log(yPos);
-                    let newCube = instantiate(this.cubesPrefab[CUBE_TYPES.SIX_CUBE]);
-                    newCube.setPosition(new Vec3(0, yPos, 0));
-                    newCube.setRotationFromEuler(new Vec3(0, angle, 0));
-                    (newCube.getComponent('BaseCube') as BaseCube).setBaseReference(this);
-
-                    this.cubeStack.addChild(newCube);
-
-                }
+                this.cubeStack.addChild(newCube);
 
             }
         }
 
+    }
+
+    getCubeEnum(cube: string) {
+        switch (cube) {
+            case 'SixCube':
+                return CUBE_TYPES.SIX_CUBE;
+            case 'FlowerCube':
+                return CUBE_TYPES.FLOWER;
+            case 'SpikeCube':
+                return CUBE_TYPES.SPIKE;
+            case 'SquareCube':
+                return CUBE_TYPES.SQUARE;
+            case 'CircleCube':
+                return CUBE_TYPES.CIRCLE;
+            default:
+                console.log('Invalid cube type in JSON');
+                break;
+        }
     }
 
     initEventListeners() {
@@ -378,7 +397,7 @@ export class MainScene extends Component {
         let camera = this.camera.getComponent('GameCamera') as GameCamera;
         camera.gameOver = true;
 
-        let bPos = this.cubeStack.children[this.cubeStack.children.length - 1].position.y + 5;
+        let bPos = this.cubeStack.children.length * this.cubeDist + 5;
         this.ball.setPosition(new Vec3(this.ball.position.x, bPos, this.ball.position.z));
 
         this.scheduleOnce(callback, 1);

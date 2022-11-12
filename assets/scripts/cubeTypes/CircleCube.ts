@@ -1,10 +1,10 @@
-import { _decorator, Component, Node, Collider, ICollisionEvent, MeshCollider, Vec3, Vec2, tween, easing } from 'cc';
+import { _decorator, Node, ICollisionEvent, MeshCollider, Vec3, Vec2, tween, easing } from 'cc';
 import { CUSTOM_EVENT, eventTarget } from '../MainScene';
 import { BaseCube } from './BaseCube';
 const { ccclass, property } = _decorator;
 
-@ccclass('SixCube')
-export class SixCube extends BaseCube {
+@ccclass('CircleCube')
+export class CircleCube extends BaseCube {
 
     isBroken = false
 
@@ -12,14 +12,12 @@ export class SixCube extends BaseCube {
     surfaceArr: Node[] = [];
 
     breakPositionArray = [
-        new Vec2(0.02, -0.014),
-        new Vec2(0, -0.025),
-        new Vec2(-0.022, -0.013),
-        new Vec2(-0.026, 0.015),
-        new Vec2(0, 0.026),
-        new Vec2(0.023, 0.014)
+        new Vec2(7.377, 1.687),
+        new Vec2(1.15, -7.887),
+        new Vec2(-8.544, -1.999),
+        new Vec2(-2.536, 7.739)
     ];
-    
+
     start() {
         this.isBroken = false;
     }

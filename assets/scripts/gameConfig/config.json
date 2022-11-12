@@ -1,35 +1,35 @@
 {
     "levels": [
         {
-            "cube": "SixCube",
+            "cube": "FlowerCube",
             "cubelength": 60,
             "spin": 5,
             "cut": 3,
             "jumpAngle": 40
         },
         {
-            "cube": "SixCube",
-            "cubelength": 80,
-            "spin": 6,
-            "cut": 2,
-            "jumpAngle": 50
-        },
-        {
-            "cube": "SixCube",
-            "cubelength": 80,
-            "spin": 7,
-            "cut": 2,
-            "jumpAngle": 60
-        },
-        {
-            "cube": "SixCube",
+            "cube": "SpikeCube",
             "cubelength": 90,
             "spin": 8,
             "cut": 3,
             "jumpAngle": 70
         },
         {
-            "cube": "SixCube",
+            "cube": "CircleCube",
+            "cubelength": 80,
+            "spin": 6,
+            "cut": 2,
+            "jumpAngle": 50
+        },
+        {
+            "cube": "FlowerCube",
+            "cubelength": 80,
+            "spin": 7,
+            "cut": 2,
+            "jumpAngle": 60
+        },
+        {
+            "cube": "SquareCube",
             "cubelength": 120,
             "spin": 9,
             "cut": 5,
