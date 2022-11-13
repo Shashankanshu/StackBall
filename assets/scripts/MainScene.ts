@@ -2,9 +2,9 @@ import { _decorator, Component, Node, PhysicsSystem, JsonAsset, Prefab, instanti
 import { Ball } from './Ball';
 import { GameCamera } from './Camera';
 import { BaseCube } from './cubeTypes/BaseCube';
+import { BOOST_TIME, STORAGENAME } from './StackCont';
 const { ccclass, property } = _decorator;
 
-export const storageName = 'rajgamesdata';
 export const eventTarget = new EventTarget();
 
 export const enum CUSTOM_EVENT {
@@ -20,7 +20,12 @@ export const enum CUSTOM_EVENT {
     BALL_COLLIDE = 'BALL_COLLIDE',
     HARD_CUBE = 'HARD_CUBE',
     PLAYER_DEAD = 'PLAYER_DEAD',
-    NEW_GAME = 'NEW_GAME'
+    NEW_GAME = 'NEW_GAME',
+    WATCH_ADS = 'WATCH_ADS',
+    ADS_SHOWN = 'ADS_SHOWN',
+    ADS_NOT_SHOWN = 'ADS_NOT_SHOWN',
+    REWARD_BOOST = 'REWARD_BOOST',
+    REWARD_LIFE = 'REWARD_LIFE'
 }
 
 export const enum CUBE_TYPES {
@@ -50,7 +55,7 @@ export class MainScene extends Component {
     ball: Node;
 
     @property(Node)
-    camera: GameCamera;
+    camera: Node;
 
     savedConfig: {
         level: number,
@@ -86,6 +91,10 @@ export class MainScene extends Component {
     cubeHeight = 0.7;
     cubeDist = 0.4;
 
+    cube_int = 0;
+
+    adsBoostActive = false;
+
     onLoad() {
 
         game.frameRate = 60;
@@ -103,7 +112,11 @@ export class MainScene extends Component {
 
     resetComponents() {
 
+        this.game_over = true;
+        this.game_started = false;
         this.levelOver = false;
+        this.hit_pressed = false;
+
         this.cubeStack.removeAllChildren();
 
         this.filler.getComponent(Sprite).color = this.colorGreen;
@@ -138,6 +151,7 @@ export class MainScene extends Component {
     startGame() {
         this.game_over = false;
         this.game_started = true;
+        this.levelOver = false;
     }
 
     startNewGame() {
@@ -156,9 +170,7 @@ export class MainScene extends Component {
 
             eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.NEW_GAME));
 
-            this.game_over = false;
-            this.game_started = true;
-
+            this.startGame();
         });
     }
 
@@ -174,14 +186,14 @@ export class MainScene extends Component {
             score: 0
         };
 
-        let gameData = JSON.parse(localStorage.getItem(storageName));
+        let gameData = JSON.parse(localStorage.getItem(STORAGENAME));
         // gameData = null;
         if (gameData == null || gameData == undefined) {
             gameData = {
                 level: 0,
                 score: 0
             };
-            localStorage.setItem(storageName, JSON.stringify(gameData));
+            localStorage.setItem(STORAGENAME, JSON.stringify(gameData));
         }
 
         this.savedConfig.level = gameData.level;
@@ -211,6 +223,9 @@ export class MainScene extends Component {
         this.level_data = lData;
 
         let cubeStr = this.level_data.cube;
+        let cubEnum = this.getCubeEnum(cubeStr)
+        this.cube_int = cubEnum;
+
         let angle = 0;
         let counter = 0;
 
@@ -231,7 +246,7 @@ export class MainScene extends Component {
                 let yPos = this.cubeDist * counter;
                 yPos = Number(yPos.toPrecision(3));
 
-                let newCube = instantiate(this.cubesPrefab[this.getCubeEnum(cubeStr)]);
+                let newCube = instantiate(this.cubesPrefab[this.cube_int]);
                 newCube.setPosition(new Vec3(0, yPos, 0));
                 newCube.setRotationFromEuler(new Vec3(0, angle, 0));
                 (newCube.getComponent('BaseCube') as BaseCube).setBaseReference(this);
@@ -275,10 +290,21 @@ export class MainScene extends Component {
             this.pauseGame(true);
         });
         eventTarget.addEventListener(CUSTOM_EVENT.GAME_RESUME, () => {
-            this.pauseGame(false);
+            if (this.game_over) {
+                this.startNewGame();
+            } else {
+                this.pauseGame(false);
+            }
         });
         eventTarget.addEventListener(CUSTOM_EVENT.HIT_RELEASE, () => {
             this.onHitRealeased();
+        });
+        eventTarget.addEventListener(CUSTOM_EVENT.REWARD_BOOST, () => {
+            this.adsBoostActive = true;
+            this.setBoostActive();
+        });
+        eventTarget.addEventListener(CUSTOM_EVENT.REWARD_LIFE, () => {
+            this.onLifeRewarded();
         });
         eventTarget.addEventListener(CUSTOM_EVENT.LEVEL_COMP, () => {
             if (this.max_level >= this.current_level) {
@@ -303,9 +329,16 @@ export class MainScene extends Component {
 
                 if (event.otherCollider.node.name == 'polySurface1') {
                     this.onHardCubeBreak(event);
+                } else if (this.cube_int === CUBE_TYPES.CIRCLE) {
+                    if (event.otherCollider.node.name == 'polySurface3') {
+                        this.onHardCubeBreak(event);
+                    } else {
+                        this.onCubeBreak(event);
+                    }
                 } else {
                     this.onCubeBreak(event);
                 }
+
             } else {
                 if (!this.levelOver)
                     this.onLevelComplete();
@@ -316,16 +349,20 @@ export class MainScene extends Component {
 
     onHitPressed() {
         if (!this.levelOver && !this.game_over) {
-
             this.hit_pressed = true;
-            this.emptyTween && this.emptyTween.stop();
-            this.fillTween = tween(this.filler)
-                .to(2, { position: new Vec3(0, 0, 0) }, {
-                    onComplete: () => {
-                        this.setBoostActive();
-                    }
-                })
-                .start();
+
+            if (!this.adsBoostActive) {
+
+                this.emptyTween && this.emptyTween.stop();
+                this.fillTween = tween(this.filler)
+                    .to(2, { position: new Vec3(0, 0, 0) }, {
+                        onComplete: () => {
+                            this.setBoostActive();
+                        }
+                    })
+                    .start();
+            }
+
         }
     }
 
@@ -342,9 +379,17 @@ export class MainScene extends Component {
     setBoostActive() {
         this.boostActive = true;
         this.filler.getComponent(Sprite).color = this.colorRed;
+        this.filler.setPosition(new Vec3(0, 0, 0));
+
+        let time = 1;
+        if (this.adsBoostActive)
+            time = BOOST_TIME;
+
         this.emptyTween = tween(this.filler)
-            .to(1, { position: new Vec3(0, -this.fillerDimention.height, 0) }, {
+            .to(time, { position: new Vec3(0, -this.fillerDimention.height, 0) }, {
                 onComplete: () => {
+
+                    this.adsBoostActive = false;
 
                     if (this.hit_pressed)
                         this.onHitPressed();
@@ -387,9 +432,25 @@ export class MainScene extends Component {
 
     onGameOver() {
         this.game_over = true;
+        this.pauseGame(true);
+
         this.onHitRealeased();
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.PLAYER_DEAD));
-        this.scheduleOnce(this.startNewGame, 2);
+    }
+
+    onLifeRewarded() {
+        let pos = new Vec3(this.ball.position.x, this.ball.position.y + 5, this.ball.position.z);
+
+        (this.ball.getComponent('Ball') as Ball).resetGravity();
+        (this.ball.getComponent('Ball') as Ball).forcePosition(pos);
+
+        this.camera.setPosition(new Vec3(this.camera.position.x, pos.y, this.camera.position.z));
+
+        this.game_over = false;
+
+        this.scheduleOnce(() => {
+            this.pauseGame(false);
+        }, 1)
     }
 
     resetBallAndCamera(callback: Function) {
@@ -413,7 +474,7 @@ export class MainScene extends Component {
 
     updateGameData() {
 
-        let data = JSON.parse(localStorage.getItem(storageName));
+        let data = JSON.parse(localStorage.getItem(STORAGENAME));
 
         let gameData = {
             level: this.current_level,
@@ -423,6 +484,6 @@ export class MainScene extends Component {
         this.savedConfig.level = gameData.level;
         this.savedConfig.score = gameData.score;
 
-        localStorage.setItem(storageName, JSON.stringify(gameData));
+        localStorage.setItem(STORAGENAME, JSON.stringify(gameData));
     }
 }

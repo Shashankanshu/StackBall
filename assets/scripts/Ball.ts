@@ -1,4 +1,4 @@
-import { _decorator, Component, ICollisionEvent, macro, SphereCollider } from 'cc';
+import { _decorator, Component, ICollisionEvent, macro, SphereCollider, Vec3 } from 'cc';
 import { MainScene } from './MainScene';
 const { ccclass, property } = _decorator;
 
@@ -23,14 +23,18 @@ export class Ball extends Component {
         return this._mainScene;
     }
 
+    forcePosition(pos: Vec3){
+        this.node.setPosition(pos);
+        this.cy = pos.y;
+    }
+
     resetGravity(){
         this.lastCollider = '';
-        this.cy = 0;
         this.vy = 0;
     }
 
     initBall() {
-
+        this.cy = 0;
         this.resetGravity();
 
         this.cy = this.node.position.y;

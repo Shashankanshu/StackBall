@@ -1,20 +1,8 @@
 import { _decorator, Component, Node, Label, tween, Vec3, easing, AudioSource, AudioClip, Sprite, Color, UIOpacity } from 'cc';
 import { AudioEngine } from './AudioEngine';
-import { CUSTOM_EVENT, eventTarget, storageName } from './MainScene';
+import { CUSTOM_EVENT, eventTarget } from './MainScene';
+import { ADS_TYPE, AUDIO_TYPE, BOOST_TIME, REWARD, SCOREMULTIPLIER, STORAGENAME } from './StackCont';
 const { ccclass, property } = _decorator;
-
-const scoreMultiplier = 5;
-
-export const enum AUDIO_TYPE {
-    BUTTON,
-    CLICK,
-    IMMOTAL_CUBE,
-    JUMP,
-    NORMAL_CUBE,
-    LEVEL_PASS,
-    PLAYER_DEAD,
-    POP
-};
 
 @ccclass('HudController')
 export class HudController extends Component {
@@ -25,6 +13,12 @@ export class HudController extends Component {
 
     @property(Node)
     hitButton: Node = null;
+
+    @property(Node)
+    requestAdsContainer: Node = null;
+
+    @property(Label)
+    adsReqLabel: Label = null;
 
     @property(Label)
     scoreLabel: Label = null;
@@ -70,6 +64,7 @@ export class HudController extends Component {
     isGamePaused = false;
 
     transparency = 121;
+    requestedAdsType: ADS_TYPE = ADS_TYPE.BOOST;
 
     onLoad() {
 
@@ -90,6 +85,9 @@ export class HudController extends Component {
         this.soundOffSprite.active = false;
         this.isGamePaused = false;
 
+        this.requestAdsContainer.active = true;
+        this.requestAdsContainer.setScale(new Vec3(0, 0, 0));
+
         this.hideHud();
         this.hideCreds();
         this.showOverlay();
@@ -104,7 +102,7 @@ export class HudController extends Component {
 
     private resetScore() {
 
-        let data = JSON.parse(localStorage.getItem(storageName));
+        let data = JSON.parse(localStorage.getItem(STORAGENAME));
 
         this.current_score = data.score;
         this.scoreLabel.string = ' Score : ' + this.current_score + ' ';
@@ -150,9 +148,16 @@ export class HudController extends Component {
         });
         eventTarget.addEventListener(CUSTOM_EVENT.PLAYER_DEAD, () => {
             AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.PLAYER_DEAD]);
+            this.showLifeRequest();
         });
         eventTarget.addEventListener(CUSTOM_EVENT.NEW_GAME, () => {
             this.resetScore();
+        });
+        eventTarget.addEventListener(CUSTOM_EVENT.ADS_SHOWN, () => {
+            this.onAdsShown();
+        });
+        eventTarget.addEventListener(CUSTOM_EVENT.ADS_NOT_SHOWN, () => {
+            this.onAdsNotShown();
         });
     }
 
@@ -272,17 +277,17 @@ export class HudController extends Component {
     }
 
     updateScore() {
-        this.current_score += scoreMultiplier;
+        this.current_score += SCOREMULTIPLIER;
         this.scoreLabel.string = ' Score : ' + this.current_score + ' ';
     }
 
     onLevelComplete() {
-        let data = JSON.parse(localStorage.getItem(storageName));
+        let data = JSON.parse(localStorage.getItem(STORAGENAME));
         let gameData = {
             level: data.level,
             score: this.current_score
         };
-        localStorage.setItem(storageName, JSON.stringify(gameData));
+        localStorage.setItem(STORAGENAME, JSON.stringify(gameData));
         AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.LEVEL_PASS]);
     }
 
@@ -294,6 +299,8 @@ export class HudController extends Component {
         this.hideOverlay();
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.NEW_GAME));
         eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.PLAY_GAME));
+
+        this.showBoostRequest();
     }
 
     onOptionsClick() {
@@ -309,7 +316,7 @@ export class HudController extends Component {
         this.hideOptions();
 
         if (this.playClicked) {
-            
+
             this.hideOverlay();
             this.scheduleOnce(() => {
                 this.isGamePaused = false;
@@ -368,6 +375,75 @@ export class HudController extends Component {
             eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_PAUSED));
             AudioEngine.instance.playSound(this.audioClip[AUDIO_TYPE.CLICK]);
         }
+    }
+
+    /// ads work
+
+    requestAds() {
+        eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.WATCH_ADS));
+    }
+
+    showBoostRequest() {
+        this.isGamePaused = true;
+        eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_PAUSED));
+        this.adsReqLabel.string = REWARD.boost + 'for ' + BOOST_TIME + ' sec';
+        this.requestedAdsType = ADS_TYPE.BOOST;
+        this.showRequestAdsPopup();
+    }
+
+    showLifeRequest() {
+        this.isGamePaused = true;
+        eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_PAUSED));
+        this.adsReqLabel.string = REWARD.life;
+        this.requestedAdsType = ADS_TYPE.LIFE;
+        this.showRequestAdsPopup();
+    }
+
+    onNoClick() {
+        this.resumeGame();
+    }
+
+    resumeGame() {
+        this.isGamePaused = false;
+        this.hideRequestAdsPopup();
+
+        if (this.requestedAdsType === ADS_TYPE.LIFE) {
+            this.scheduleOnce(() => {
+                eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_RESUME));
+            }, 0.2);
+        }
+        else {
+            eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_RESUME));
+        }
+    }
+
+    onAdsShown() {
+        this.hideRequestAdsPopup();
+        if (this.requestedAdsType === ADS_TYPE.BOOST)
+            eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.REWARD_BOOST));
+        else {
+            eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.REWARD_LIFE));
+        }
+    }
+
+    onAdsNotShown() {
+        this.hideRequestAdsPopup();
+        this.isGamePaused = false;
+        eventTarget.dispatchEvent(new Event(CUSTOM_EVENT.GAME_RESUME));
+    }
+
+    showRequestAdsPopup() {
+        tween(this.requestAdsContainer)
+            .to(0.2, { scale: new Vec3(1, 1, 1) }, {
+                easing: easing.sineOut
+            }).start();
+    }
+
+    hideRequestAdsPopup() {
+        tween(this.requestAdsContainer)
+            .to(0.2, { scale: new Vec3(0, 0, 0) }, {
+                easing: easing.sineOut
+            }).start();
     }
 }
 

@@ -29,7 +29,7 @@ export class GameCamera extends Component {
                 this.node.position = this.node.position.lerp(tempPos, this.moveSmooth);
             }
         } else {
-            
+
             if (this.ball.position.y > this.node.position.y) {
                 let tempPos = new Vec3();
                 tempPos = new Vec3(0, this.ball.position.y, 0);

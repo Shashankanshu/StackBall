@@ -91,7 +91,7 @@
         "_value": true
       },
       "terrain": {
-        "_value": true
+        "_value": false
       },
       "tiled-map": {
         "_value": false
@@ -125,7 +125,6 @@
       "primitive",
       "profiler",
       "skeletal-animation",
-      "terrain",
       "tween",
       "ui",
       "video",
